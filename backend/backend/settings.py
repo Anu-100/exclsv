@@ -14,6 +14,9 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from environs import Env
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 env = Env()
 env.read_env()
@@ -59,7 +62,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'corsheaders',
-    'anymail'
+    'anymail',
+    'cloudinary'
 ]
 
 MIDDLEWARE = [
@@ -145,6 +149,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary - Django integration
+
+cloudinary.config(
+    cloud_name=env("CLOUDINARY_CLOUD_NAME"),
+    api_key=env("CLOUDINARY_API_KEY"),
+    api_secret=env("CLOUDINARY_API_SECRET")
+)
 
 CORS_ALLOW_ALL_ORIGINS = True
 
