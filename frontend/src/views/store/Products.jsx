@@ -143,9 +143,6 @@ const Products = () => {
             }
         }
         
-
-        // formData.append("color ", selectedColor[p.id]);
-        // formData.append("size ", selectedSize[p.id]);
         formData.append("country ", currentAddress.country);
         formData.append("cart_id", cartID);
         
