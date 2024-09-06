@@ -209,7 +209,7 @@ const Products = () => {
             <main className="mt-5">
                 <div className="container">
                     <section className="text-center">
-                        <h3 className="mb-3">Trending now</h3>
+                        <h2 className="mb-3">Trending now</h2>
                         <div className="row">
                             {products?.slice(0, 4).map((p, index) => (
                             <div className="col-lg-3 col-md-6 mb-4">
