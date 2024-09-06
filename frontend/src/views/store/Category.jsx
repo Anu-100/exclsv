@@ -236,7 +236,7 @@ const Category = () => {
                                                 </li>
                                                 </div>
                                             </div>
-                                            {p.size.length > 0 && (
+                                            {p.size?.length > 0 && (
                                             <div className="d-flex flex-column">
                                                 <li className="p-1">
                                                     <b>Size</b> :  {selectedSize[p.id]}
@@ -253,7 +253,7 @@ const Category = () => {
                                                 </div>
                                             </div>
                                             )}
-                                            {p.color.length > 0 && (
+                                            {p.color?.length > 0 && (
                                             <div className="d-flex flex-column mt-3">
                                                 <li className="p-1">
                                                     <b>Color</b> :  {selectedColor[p.id]}
