@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Link } from "react-router-dom";
+import React, {useEffect, useState} from 'react'
+import { Link,useSearchParams } from "react-router-dom";
 import apiInstance from "../../utils/axios";
 import UserData from "../plugins/UserData";
 import GetCurrentAddress from "../plugins/UserCountry";
 import CartID from "../plugins/CartID";
 import Toast from "../../utils/Toast";
-import { CartContext } from "../plugins/Context";
 
-const Products = () => {
+const Category = () => {
+    const [cartID, setCartID ] = useState(null);
     const [products, setProducts] = useState([]);
     const [ category, setCategory] = useState([]);
     const [sizeVal, setSizeVal ] = useState(null);
@@ -17,11 +17,11 @@ const Products = () => {
     const [ selectedSize, setSelectedSize ] = useState({});
     const [ quantityValue, setQuantityValue ] = useState(1);
 
+    const [searchParams] = useSearchParams();
+    const categoryParam = searchParams.get('category') ;
+
     const userData = UserData();
     const currentAddress = GetCurrentAddress();
-    const [cartID, setCartID ] = useState(null);
-
-    const [cartCount, setCartCount] = useContext(CartContext)
 
     const fetchCartID = async () =>  {
         try {
@@ -31,10 +31,6 @@ const Products = () => {
             console.log(error);
         }
     }
-
-    useEffect(() => {
-        fetchCartID();
-    }, []);
 
     const handleColorButtonClick = (product_id, color_name) => {
         setColorVal(color_name);
@@ -143,6 +139,9 @@ const Products = () => {
             }
         }
         
+
+        // formData.append("color ", selectedColor[p.id]);
+        // formData.append("size ", selectedSize[p.id]);
         formData.append("country ", currentAddress.country);
         formData.append("cart_id", cartID);
         
@@ -152,57 +151,24 @@ const Products = () => {
             icon: "success",
             title: response.data.message,
         })
-
-        await apiInstance.get(`cart-list/${cartID}/${userData?.user_id}/`)
-        .then((res) => {
-            setCartCount(res.data.length);
-        })
-        .catch((error) => {
-            console.log(error.message);
-        })
             
     }
-    
+
     useEffect(() => {
-        apiInstance
-            .get("products/")
-            .then((res) => {
+        fetchCartID();
+    }, []);
+
+    useEffect(()=>{
+        if(categoryParam){
+            apiInstance.get(`category/products/?category=${categoryParam}`)
+            .then((res)=>{
                 setProducts(res.data);
             })
-            .catch((error) => {
-                console.log(error);
-            });
-    }, []);
-
-    useEffect(() => {
-        apiInstance.get("category/")
-        .then((res) => {
-            setCategory(res.data);
-        })
-        .catch((error) => {
-            console.log(error);
-        })
-    }, []);
-
-    const addToWishlist = async (productId, userId) => {
-        const formData = new FormData();
-        formData.append("user_id ", userId);
-        formData.append("product_id ", productId);
-        try {
-            const response = await apiInstance.post(`customer/wishlist/${userId}/`, formData);
-
-            Toast.fire({
-                icon: "success",
-                title: response.data.message,
-            })
-        } catch (error) {
-            console.log(error);
-            Toast.fire({
-                icon: "error",
-                title: error.message,
+            .catch((err) =>{
+                console.log(err)
             })
         }
-    }
+    }, [categoryParam])
 
     return (
         <>
@@ -210,7 +176,7 @@ const Products = () => {
                 <div className="container">
                     <section className="text-center">
                         <div className="row">
-                            {products?.map((p, index) => (
+                            {products.length > 0 ? (products?.map((p, index) => (
                             <div className="col-lg-3 col-md-6 mb-4">
                                 <div className="card">
                                     <div
@@ -311,49 +277,44 @@ const Products = () => {
                                                     >
                                                         <i className="fas fa-shopping-cart" />
                                                     </button>
+                                                    {/* <button
+                                                        type="button"
+                                                        className="btn btn-danger px-3 me-1 mb-1 ms-2"
+                                                    >
+                                                        <i className="fas fa-heart" />
+                                                    </button> */}
                                                 </div>
                                             </ul>
                                             <button
                                                 type="button"
                                                 className="btn btn-danger px-3 me-1 ms-2"
-                                                onClick={() => addToWishlist(p.id, userData?.user_id)}
                                             >
                                                 <i className="fas fa-heart" />
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            ))}
+                            </div>)
+                            )): (
+                                <div className='col-12' style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    height: '41.7vh',
+                                    textAlign: 'center'
+                                }}
+                        >
+                                    <h5>No items in this category</h5>
+                                </div>
+                            )}                  
                             
-                            <div className="row my-4">
-                                {category?.map((c, index) => (
-                                    <div className="col-lg-2" key={index}>
-                                    <Link to={`/products/?category=${c.title}`}>
-                                    <img
-                                        src={c.image}
-                                        style={{
-                                            width: "100px",
-                                            height: "100px",
-                                            borderRadius: "50%",
-                                            objectFit: "cover",
-                                        }}
-                                        alt=""
-                                    />
-                                    </Link>
-
-                                    <h6>{c.title}</h6>
-                                    </div>
-                                ))
-                                }
-                            </div>
                         </div>
                     </section>
                     {/*Section: Wishlist*/}
                 </div>
             </main>
         </>
-    );
-};
+    )
+}
 
-export default Products;
+export default Category

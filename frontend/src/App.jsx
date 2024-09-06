@@ -41,6 +41,7 @@ import Shop from "./views/vendor/Shop";
 import AddProduct from "./views/vendor/AddProduct";
 import UpdateProduct from "./views/vendor/UpdateProduct";
 import VendorRegister from "./views/vendor/VendorRegister";
+import Category from "./views/store/Category";
 
 
 function App() {
@@ -97,6 +98,7 @@ function App() {
                 <Route path="/checkout/:order_id" element={<Checkout />} />
                 <Route path="/payment-success/:order_id" element={<PaymentSuccess />} />
                 <Route path="/search" element={<Search />} />
+                <Route path="/products" element={<Category/>}/>
 
                 {/* Customer endpoints */}
                 <Route path="/customer/account" element={<PrivateRoute><Account /></PrivateRoute>} />

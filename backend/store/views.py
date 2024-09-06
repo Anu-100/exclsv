@@ -30,6 +30,16 @@ class ProductListAPIView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
 
+class CategoryProductsListAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        category = self.request.GET.get('category', None)
+        if category is not None:
+            products = Product.objects.filter(category__title=category)
+        return products
+
 class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
