@@ -209,6 +209,7 @@ const Products = () => {
             <main className="mt-5">
                 <div className="container">
                     <section className="text-center">
+                        <h3 className="mb-3">Trending now</h3>
                         <div className="row">
                             {products?.map((p, index) => (
                             <div className="col-lg-3 col-md-6 mb-4">
@@ -327,6 +328,7 @@ const Products = () => {
                             ))}
                             
                             <div className="row my-4">
+                                <h4 className="mb-5">Shop by category</h4>
                                 {category?.map((c, index) => (
                                     <div className="col-lg-2" key={index}>
                                     <Link to={`/products/?category=${c.title}`}>
