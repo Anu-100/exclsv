@@ -9,7 +9,7 @@ import Toast from "../../utils/Toast";
 const Category = () => {
     const [cartID, setCartID ] = useState(null);
     const [products, setProducts] = useState([]);
-    const [ category, setCategory] = useState([]);
+    const [visibleProducts, setVisibleProducts] = useState(12);
     const [sizeVal, setSizeVal ] = useState(null);
     const [colorVal, setColorVal ] = useState(null);
     const [ selectedProducts, setSelectedProducts ] = useState(null);
@@ -154,6 +154,10 @@ const Category = () => {
             
     }
 
+    const handleShowMore = () => {
+        setVisibleProducts(prevVisibleProducts => prevVisibleProducts + 12);
+    }
+
     useEffect(() => {
         fetchCartID();
     }, []);
@@ -176,7 +180,8 @@ const Category = () => {
                 <div className="container">
                     <section className="text-center">
                         <div className="row">
-                            {products.length > 0 ? (products?.map((p, index) => (
+                            {products.length > 0 ? (
+                            products?.slice(0, visibleProducts).map((p, index) => (
                             <div className="col-lg-3 col-md-6 mb-4">
                                 <div className="card">
                                     <div
@@ -306,7 +311,15 @@ const Category = () => {
                         >
                                     <h5>No items in this category</h5>
                                 </div>
-                            )}                  
+                            )} 
+                            {products.length > visibleProducts && (
+                                <div className="text-center mt-4">
+                                    <button className="btn btn-primary" onClick={handleShowMore}>
+                                        Show More
+                                    </button>
+                                </div>
+                            )}
+                 
                             
                         </div>
                     </section>

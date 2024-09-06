@@ -211,7 +211,7 @@ const Products = () => {
                     <section className="text-center">
                         <h3 className="mb-3">Trending now</h3>
                         <div className="row">
-                            {products?.map((p, index) => (
+                            {products?.slice(0, 4).map((p, index) => (
                             <div className="col-lg-3 col-md-6 mb-4">
                                 <div className="card">
                                     <div
