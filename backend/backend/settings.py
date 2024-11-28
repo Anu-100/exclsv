@@ -14,9 +14,6 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from environs import Env
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 env = Env()
 env.read_env()
@@ -34,7 +31,12 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['multivendor-ecommerce-backend.up.railway.app']
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = ['https://multivendor-ecommerce-backend.up.railway.app']
+SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
 
 BASE_URL = env("BASE_URL")
 
