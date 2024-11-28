@@ -37,6 +37,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = ['https://multivendor-ecommerce-backend.up.railway.app']
 SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
+ALLOWED_HOSTS = ["mulitvendor-ecommerce-backend.up.railway.app"]
 
 BASE_URL = env("BASE_URL")
 
@@ -70,8 +71,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -162,6 +163,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # )
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = ['https://multivendor-ecommerce-backend.up.railway.app']
+SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
 
 AUTH_USER_MODEL = 'userauth.User'
 
