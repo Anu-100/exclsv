@@ -28,9 +28,9 @@ schema_view = get_schema_view(
         title="E-commerce Backend APIs",
         default_version="v1",
         description="This is the documentation of the backend APIs",
-        # terms_of_service="",
-        # contact= openapi.Contact(email=""),
-        # license=openapi.License(name="BSD License")
+        terms_of_service="",
+        contact= openapi.Contact(email=""),
+        license=openapi.License(name="BSD License")
     ),
     public=True,
     permission_classes = (permissions.AllowAny,)

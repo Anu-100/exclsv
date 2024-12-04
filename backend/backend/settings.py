@@ -35,9 +35,8 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = ['https://multivendor-ecommerce-backend.up.railway.app']
-SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
-ALLOWED_HOSTS = ["mulitvendor-ecommerce-backend.up.railway.app"]
+# CSRF_TRUSTED_ORIGINS = ['https://multivendor-ecommerce-backend.up.railway.app']
+# SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
 
 BASE_URL = env("BASE_URL")
 
