@@ -201,7 +201,7 @@ const UpdateProduct = () => {
         await handleGallery(gallery, formData)
 
         try {
-            const response = await apiInstance.patch(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
+            await apiInstance.patch(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
                 headers:{
                     'Content-Type': 'multipart/form-data',
                     'X-CSRFToken': csrftoken
