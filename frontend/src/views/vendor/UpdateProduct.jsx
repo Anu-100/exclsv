@@ -9,6 +9,7 @@ const UpdateProduct = () => {
     const userData = UserData();
     const navigate = useNavigate();
     const params = useParams();
+    console.log(params.pid)
 
     const [product, setProduct] = useState({});
     const [specifications, setSpecifications] = useState([{title: '', content: ''}])
@@ -33,6 +34,7 @@ const UpdateProduct = () => {
         const fetchProduct = async () => {
             await apiInstance.get(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`)
             .then((res) => {
+                console.log(res.data)
                 setProduct(res.data);
                 setSize(res.data.size)
                 setColor(res.data.color);
@@ -44,7 +46,7 @@ const UpdateProduct = () => {
              })
         }
         fetchProduct();
-    }, []);
+    }, [userData.vendor_id, params.pid]);
 
     const handleAddMore = (setStateFunction) => {
         setStateFunction((prevState) => [...prevState, {}])
@@ -183,7 +185,7 @@ const UpdateProduct = () => {
         await handleGallery(gallery, formData)
 
         try {
-            await apiInstance.patch(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
+            await apiInstance.put(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
                 headers:{
                     'Content-Type': 'multipart/form-data',
                 }
