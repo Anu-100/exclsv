@@ -9,61 +9,127 @@ const UpdateProduct = () => {
     const userData = UserData();
     const navigate = useNavigate();
     const params = useParams();
+    console.log(params.pid)
 
     const [product, setProduct] = useState({});
-    const [initialProduct, setInitialProduct] = useState({});
-    const [specifications, setSpecifications] = useState([{ title: '', content: '' }]);
-    const [color, setColor] = useState([{ name: '', color_code: '' }]);
-    const [size, setSize] = useState([{ name: '', price: '' }]);
-    const [gallery, setGallery] = useState([{ image: '' }]);
+    const [specifications, setSpecifications] = useState([{title: '', content: ''}])
+    const [color, setColor] = useState([{
+        name: '',
+        color_code: ''
+    }])
+    const [size, setSize] = useState([{
+        name: '',
+        price: ''
+    }])
+    const [gallery, setGallery] = useState([{image: ''}]);
     const [category, setCategory] = useState([]);
 
     useEffect(() => {
         apiInstance.get(`category/`).then((res) => {
             setCategory(res.data);
-        });
-    }, []);
+        })
+    }, [])
 
     useEffect(() => {
         const fetchProduct = async () => {
-            await apiInstance
-                .get(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`)
-                .then((res) => {
-                    setProduct(res.data);
-                    setInitialProduct(res.data); // Save initial state
-                    setSize(res.data.size);
-                    setColor(res.data.color);
-                    setGallery(res.data.gallery);
-                    setSpecifications(res.data.specification);
-                })
-                .catch((err) => {
-                    console.log(err.message);
-                });
-        };
+            await apiInstance.get(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`)
+            .then((res) => {
+                console.log(res.data)
+                setProduct(res.data); 
+                setSize(res.data.size)
+                setColor(res.data.color);
+                setGallery(res.data.gallery);
+                setSpecifications(res.data.specification);
+            })
+            .catch((err) => {
+                console.log(err.message);
+             })
+        }
         fetchProduct();
     }, [userData.vendor_id, params.pid]);
 
+    const handleAddMore = (setStateFunction) => {
+        setStateFunction((prevState) => [...prevState, {}])
+    }
+
+    const handleRemove = (index, setStateFunction) => {
+        setStateFunction((prevState) => {
+            const newState = [...prevState]
+            newState.splice(index, 1)
+            return newState;
+        })
+    }
+
     const handleInputChange = (index, field, value, setStateFunction) => {
         setStateFunction((prevState) => {
-            const newState = [...prevState];
-            newState[index][field] = value;
-            return newState;
-        });
-    };
+            const newState = [...prevState]
+            newState[index][field] = value
+            return newState
+        })
+    }
+
+    const handleImageChange = (index, event, setStateFunction) => {
+        const file = event.target.files[0];
+        if (file){
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setStateFunction((prevState) => {
+                    const newState = [...prevState]
+                    newState[index].image = {file, preview: reader.result}
+                    return newState
+                })
+            }
+            return reader.readAsDataURL(file)
+        }
+        else{
+            setStateFunction((prevState) => {
+                const newState = [...prevState]
+                newState[index].image = null
+                newState[index].preview = null
+                return newState
+            })
+        }
+    }
 
     const handleProductInputChange = (e) => {
         setProduct({
             ...product,
-            [e.target.name]: e.target.value,
-        });
-    };
+            [e.target.name]: e.target.value
+        })
+    }
 
-    const handleGallery = async (gallery, formData) => {
+    const handleProductFileChange = (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                setProduct({
+                    ...product,
+                    image: {
+                        file: e.target.files[0],
+                        preview: reader.result
+                    }
+                });
+            };
+
+            return reader.readAsDataURL(file);
+        }
+    }
+
+    const urlToFile = async(url, filename, mimeType) => {
+        const response = await fetch(url);
+        const data = await response.blob();
+        return new File([data], filename, {type: mimeType});
+    }
+
+    const handleGallery = async(gallery, formData) => {
         let newGallery = [];
         for (let index = 0; index < gallery.length; index++) {
             const item = gallery[index];
             if (item.image) {
-                let newItem = { ...item };
+                let newItem = {...item}
                 if (typeof item.image === 'string' || item.image instanceof String) {
                     let url = new URL(item.image);
                     let pathname = url.pathname.split('/');
@@ -78,232 +144,84 @@ const UpdateProduct = () => {
             }
         }
         setGallery(newGallery);
-    };
-
-    // Compare current and initial product attributes to determine which to include
-    const getUpdatedFields = () => {
-        const updatedFields = {};
-
-        // Compare and append only modified attributes (Basic fields and nested fields)
-        Object.entries(product).forEach(([key, value]) => {
-            if (initialProduct[key] !== value) {
-                updatedFields[key] = value;
-            }
-        });
-
-        // Handle specifications
-        specifications.forEach((spec, index) => {
-            if (
-                !initialProduct.specification ||
-                JSON.stringify(initialProduct.specification[index]) !== JSON.stringify(spec)
-            ) {
-                updatedFields[`specifications[${index}]`] = spec;
-            }
-        });
-
-        // Handle color
-        color.forEach((col, index) => {
-            if (
-                !initialProduct.color ||
-                JSON.stringify(initialProduct.color[index]) !== JSON.stringify(col)
-            ) {
-                updatedFields[`color[${index}]`] = col;
-            }
-        });
-
-        // Handle size
-        size.forEach((sz, index) => {
-            if (!initialProduct.size || JSON.stringify(initialProduct.size[index]) !== JSON.stringify(sz)) {
-                updatedFields[`size[${index}]`] = sz;
-            }
-        });
-
-        // Handle gallery
-        gallery.forEach((item, index) => {
-            if (
-                !initialProduct.gallery ||
-                JSON.stringify(initialProduct.gallery[index]) !== JSON.stringify(item)
-            ) {
-                updatedFields[`gallery[${index}]`] = item;
-            }
-        });
-
-        return updatedFields;
-    };
-
+    } 
+    
     const handleProductSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-
-        const updatedFields = getUpdatedFields();  // Get updated fields based on the comparison
-
-        // Add updated fields to form data
-        Object.entries(updatedFields).forEach(([key, value]) => {
-            if (key === 'image' && value && value.file) {
-                formData.append(key, value.file);
+    
+        // For product data, update only fields that have changed
+        for (let [key, value] of Object.entries(product)) {
+            // Only append the image if it has been modified
+            if (key === 'image') {
+                if (value !== undefined && value.file !== undefined) {
+                    formData.append(key, value.file);
+                } else if (typeof value === 'string' || value instanceof String) {
+                    let url = new URL(value);
+                    let pathname = url.pathname.split('/');
+                    let filename = pathname[pathname.length - 1];
+                    let file = await urlToFile(value, filename, 'image/jpeg');
+                    formData.append(key, file);
+                }
             } else {
+                // Append other fields if changed
                 formData.append(key, value);
             }
+        }
+    
+        // Handle the specifications (only updated fields)
+        specifications.forEach((specification, index) => {
+            Object.entries(specification).forEach(([key, value]) => {
+                // If the value has changed, add it to formData
+                if (value !== product.specification[index]?.[key]) {
+                    formData.append(`specifications[${index}][${key}]`, value);
+                }
+            });
         });
-
-        // Handle gallery updates if any
+    
+        // Handle the color (only updated fields)
+        color.forEach((color, index) => {
+            Object.entries(color).forEach(([key, value]) => {
+                // If the value has changed, add it to formData
+                if (value !== product.color[index]?.[key]) {
+                    formData.append(`color[${index}][${key}]`, value);
+                }
+            });
+        });
+    
+        // Handle the size (only updated fields)
+        size.forEach((size, index) => {
+            Object.entries(size).forEach(([key, value]) => {
+                // If the value has changed, add it to formData
+                if (value !== product.size[index]?.[key]) {
+                    formData.append(`size[${index}][${key}]`, value);
+                }
+            });
+        });
+    
+        // Handle gallery (only updated files)
         await handleGallery(gallery, formData);
-
+    
         try {
+            // Send the updated product data (including only the changed fields)
             await apiInstance.put(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                },
+                }
             });
+    
             Toast.fire({
-                icon: 'success',
-                title: 'Product updated successfully',
+                icon: "success",
+                title: "Product updated successfully",
             });
+    
+            // Navigate to the product list after update
             navigate(`/vendor/products`);
+    
         } catch (error) {
             console.log(error.message);
         }
     };
-
-    // const userData = UserData();
-    // const navigate = useNavigate();
-    // const params = useParams();
-    // console.log(params.pid)
-
-    // const [product, setProduct] = useState({});
-    // const [specifications, setSpecifications] = useState([{title: '', content: ''}])
-    // const [color, setColor] = useState([{
-    //     name: '',
-    //     color_code: ''
-    // }])
-    // const [size, setSize] = useState([{
-    //     name: '',
-    //     price: ''
-    // }])
-    // const [gallery, setGallery] = useState([{image: ''}]);
-    // const [category, setCategory] = useState([]);
-
-    // useEffect(() => {
-    //     apiInstance.get(`category/`).then((res) => {
-    //         setCategory(res.data);
-    //     })
-    // }, [])
-
-    // useEffect(() => {
-    //     const fetchProduct = async () => {
-    //         await apiInstance.get(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`)
-    //         .then((res) => {
-    //             console.log(res.data)
-    //             setProduct(res.data); 
-    //             setSize(res.data.size)
-    //             setColor(res.data.color);
-    //             setGallery(res.data.gallery);
-    //             setSpecifications(res.data.specification);
-    //         })
-    //         .catch((err) => {
-    //             console.log(err.message);
-    //          })
-    //     }
-    //     fetchProduct();
-    // }, [userData.vendor_id, params.pid]);
-
-    // const handleAddMore = (setStateFunction) => {
-    //     setStateFunction((prevState) => [...prevState, {}])
-    // }
-
-    // const handleRemove = (index, setStateFunction) => {
-    //     setStateFunction((prevState) => {
-    //         const newState = [...prevState]
-    //         newState.splice(index, 1)
-    //         return newState;
-    //     })
-    // }
-
-    // const handleInputChange = (index, field, value, setStateFunction) => {
-    //     setStateFunction((prevState) => {
-    //         const newState = [...prevState]
-    //         newState[index][field] = value
-    //         return newState
-    //     })
-    // }
-
-    // const handleImageChange = (index, event, setStateFunction) => {
-    //     const file = event.target.files[0];
-    //     if (file){
-    //         const reader = new FileReader();
-    //         reader.onloadend = () => {
-    //             setStateFunction((prevState) => {
-    //                 const newState = [...prevState]
-    //                 newState[index].image = {file, preview: reader.result}
-    //                 return newState
-    //             })
-    //         }
-    //         return reader.readAsDataURL(file)
-    //     }
-    //     else{
-    //         setStateFunction((prevState) => {
-    //             const newState = [...prevState]
-    //             newState[index].image = null
-    //             newState[index].preview = null
-    //             return newState
-    //         })
-    //     }
-    // }
-
-    // const handleProductInputChange = (e) => {
-    //     setProduct({
-    //         ...product,
-    //         [e.target.name]: e.target.value
-    //     })
-    // }
-
-    // const handleProductFileChange = (e) => {
-    //     const file = e.target.files[0];
-
-    //     if (file) {
-    //         const reader = new FileReader();
-
-    //         reader.onloadend = () => {
-    //             setProduct({
-    //                 ...product,
-    //                 image: {
-    //                     file: e.target.files[0],
-    //                     preview: reader.result
-    //                 }
-    //             });
-    //         };
-
-    //         return reader.readAsDataURL(file);
-    //     }
-    // }
-
-    // const urlToFile = async(url, filename, mimeType) => {
-    //     const response = await fetch(url);
-    //     const data = await response.blob();
-    //     return new File([data], filename, {type: mimeType});
-    // }
-
-    // const handleGallery = async(gallery, formData) => {
-    //     let newGallery = [];
-    //     for (let index = 0; index < gallery.length; index++) {
-    //         const item = gallery[index];
-    //         if (item.image) {
-    //             let newItem = {...item}
-    //             if (typeof item.image === 'string' || item.image instanceof String) {
-    //                 let url = new URL(item.image);
-    //                 let pathname = url.pathname.split('/');
-    //                 let filename = pathname[pathname.length - 1];
-    //                 let file = await urlToFile(item.image, filename, 'image/jpeg');
-    //                 newItem.image = file;
-    //                 formData.append(`gallery[${index}][image]`, file);
-    //             } else {
-    //                 formData.append(`gallery[${index}][image]`, item.image.file);
-    //             }
-    //             newGallery.push(newItem);
-    //         }
-    //     }
-    //     setGallery(newGallery);
-    // }    
 
     // const handleProductSubmit = async (e) => {
     //     e.preventDefault();
