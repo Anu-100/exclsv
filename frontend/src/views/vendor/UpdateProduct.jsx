@@ -7,46 +7,19 @@ import Toast from '../../utils/Toast'
 
 const UpdateProduct = () => {
     const userData = UserData();
-    const navigate = useNavigate();
     const params = useParams();
+    
     console.log(params.pid)
+    console.log(userData.vendor_id)
 
-    const [product, setProduct] = useState({});
-    const [specifications, setSpecifications] = useState([{title: '', content: ''}])
-    const [color, setColor] = useState([{
-        name: '',
-        color_code: ''
-    }])
-    const [size, setSize] = useState([{
-        name: '',
-        price: ''
-    }])
-    const [gallery, setGallery] = useState([{image: ''}]);
+    const [product, setProduct] = useState([])
+    const [specification, setSpecification] = useState([{'title' : '', 'content': ''}]);
+    const [color, setColor] = useState([{name: '', color_code: ''}])
+    const [size, setSize] = useState([{name: '', price: 0.00}])
+    const [gallery, setGallery] = useState([{image: null}]);
     const [category, setCategory] = useState([]);
 
-    useEffect(() => {
-        apiInstance.get(`category/`).then((res) => {
-            setCategory(res.data);
-        })
-    }, [])
-
-    useEffect(() => {
-        const fetchProduct = async () => {
-            await apiInstance.get(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`)
-            .then((res) => {
-                console.log(res.data)
-                setProduct(res.data); 
-                setSize(res.data.size)
-                setColor(res.data.color);
-                setGallery(res.data.gallery);
-                setSpecifications(res.data.specification);
-            })
-            .catch((err) => {
-                console.log(err.message);
-             })
-        }
-        fetchProduct();
-    }, [userData.vendor_id, params.pid]);
+    const navigate = useNavigate();
 
     const handleAddMore = (setStateFunction) => {
         setStateFunction((prevState) => [...prevState, {}])
@@ -82,12 +55,7 @@ const UpdateProduct = () => {
             return reader.readAsDataURL(file)
         }
         else{
-            setStateFunction((prevState) => {
-                const newState = [...prevState]
-                newState[index].image = null
-                newState[index].preview = null
-                return newState
-            })
+            setStateFunction((prevState) => [...prevState])
         }
     }
 
@@ -96,11 +64,10 @@ const UpdateProduct = () => {
             ...product,
             [e.target.name]: e.target.value
         })
-    }
+    }  
 
     const handleProductFileChange = (e) => {
         const file = e.target.files[0];
-
         if (file) {
             const reader = new FileReader();
 
@@ -116,167 +83,95 @@ const UpdateProduct = () => {
 
             return reader.readAsDataURL(file);
         }
-    }
-
-    const urlToFile = async(url, filename, mimeType) => {
-        const response = await fetch(url);
-        const data = await response.blob();
-        return new File([data], filename, {type: mimeType});
-    }
-
-    const handleGallery = async(gallery, formData) => {
-        let newGallery = [];
-        for (let index = 0; index < gallery.length; index++) {
-            const item = gallery[index];
-            if (item.image) {
-                let newItem = {...item}
-                if (typeof item.image === 'string' || item.image instanceof String) {
-                    let url = new URL(item.image);
-                    let pathname = url.pathname.split('/');
-                    let filename = pathname[pathname.length - 1];
-                    let file = await urlToFile(item.image, filename, 'image/jpeg');
-                    newItem.image = file;
-                    formData.append(`gallery[${index}][image]`, file);
-                } else {
-                    formData.append(`gallery[${index}][image]`, item.image.file);
-                }
-                newGallery.push(newItem);
-            }
+        else {
+            // Reset the image if no file is selected
+            setProduct({
+                ...product,
+                image : product.image
+            });
         }
-        setGallery(newGallery);
-    } 
+    }
     
+
     const handleProductSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-    
-        // For product data, update only fields that have changed
-        for (let [key, value] of Object.entries(product)) {
-            // Only append the image if it has been modified
-            if (key === 'image') {
-                if (value !== undefined && value.file !== undefined) {
-                    formData.append(key, value.file);
-                } else if (typeof value === 'string' || value instanceof String) {
-                    let url = new URL(value);
-                    let pathname = url.pathname.split('/');
-                    let filename = pathname[pathname.length - 1];
-                    let file = await urlToFile(value, filename, 'image/jpeg');
-                    formData.append(key, file);
+        
+        Object.entries(product).forEach(([key, value]) => {
+            if(key === 'image'){
+                if(value?.file){
+                    formData.append(key, value.file)
                 }
-            } else {
-                // Append other fields if changed
-                formData.append(key, value);
+                else if(typeof value === 'string'){
+                    formData.append(key, value)
+                }
             }
-        }
-    
-        // Handle the specifications (only updated fields)
-        specifications.forEach((specification, index) => {
+            else if(value !== undefined && value !== null){
+                formData.append(key, value)
+            }
+        })
+
+        specification.forEach((specification, index) => {
             Object.entries(specification).forEach(([key, value]) => {
-                // If the value has changed, add it to formData
-                if (value !== product.specification[index]?.[key]) {
-                    formData.append(`specifications[${index}][${key}]`, value);
-                }
-            });
-        });
-    
-        // Handle the color (only updated fields)
+                formData.append(`specifications[${index}][${key}]`, value)
+            })
+        })
+
         color.forEach((color, index) => {
             Object.entries(color).forEach(([key, value]) => {
-                // If the value has changed, add it to formData
-                if (value !== product.color[index]?.[key]) {
-                    formData.append(`color[${index}][${key}]`, value);
-                }
-            });
-        });
-    
-        // Handle the size (only updated fields)
+                formData.append(`color[${index}][${key}]`, value)
+            })
+        })
+
         size.forEach((size, index) => {
             Object.entries(size).forEach(([key, value]) => {
-                // If the value has changed, add it to formData
-                if (value !== product.size[index]?.[key]) {
-                    formData.append(`size[${index}][${key}]`, value);
-                }
-            });
-        });
-    
-        // Handle gallery (only updated files)
-        await handleGallery(gallery, formData);
-    
+                formData.append(`size[${index}][${key}]`, value)
+            })
+        })
+
+        gallery.forEach((item, index) => {
+            if (item.image?.file) {
+                formData.append(`gallery[${index}][image]`, item.image.file)
+            }
+            else if(typeof item.image == 'string'){
+                formData.append(`gallery[${index}][image]`, item.image)
+            }
+        })
+
         try {
-            // Send the updated product data (including only the changed fields)
-            await apiInstance.put(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
+            await apiInstance.patch(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
+                headers : {
+                    'Content-Type' : 'multipart/form-data'
                 }
-            });
-    
+            })
             Toast.fire({
                 icon: "success",
                 title: "Product updated successfully",
-            });
-    
-            // Navigate to the product list after update
-            navigate(`/vendor/products`);
-    
+            })
+            
+            navigate(`/vendor/products`)
         } catch (error) {
-            console.log(error.message);
+            console.log(error.response);
         }
-    };
+    }
 
-    // const handleProductSubmit = async (e) => {
-    //     e.preventDefault();
-    //     const formData = new FormData();
-    //     for (let [key, value] of Object.entries(product)) {
-    //         if (key === 'image') {
-    //             if (value !== undefined && value.file !== undefined) {
-    //                 formData.append(key, value.file);
-    //             } else if (typeof value === 'string' || value instanceof String) {
-    //                 let url = new URL(value);
-    //                 let pathname = url.pathname.split('/');
-    //                 let filename = pathname[pathname.length - 1];
-    //                 let file = await urlToFile(value, filename, 'image/jpeg');
-    //                 formData.append(key, file);
-    //             }
-    //         } else {
-    //             formData.append(key, value);
-    //         }
-    //     }
-    //     specifications.forEach((specification, index) => {
-    //         Object.entries(specification).forEach(([key, value]) => {
-    //             formData.append(`specifications[${index}][${key}]`, value)
-    //         })
-    //     })
+    useEffect(() => {
+        apiInstance.get(`vendor/update-product/${userData?.vendor_id}/${params?.pid}/`).then((res) => {
+            console.log(res.data);
+            setProduct(res.data);
+            setGallery(res.data.gallery);
+            setColor(res.data.color);
+            setSize(res.data.size);
+            setSpecification(res.data.specification);
+        })
+    }, [userData?.vendor_id, params.pid])
 
-    //     color.forEach((color, index) => {
-    //         Object.entries(color).forEach(([key, value]) => {
-    //             formData.append(`color[${index}][${key}]`, value)
-    //         })
-    //     })
-
-    //     size.forEach((size, index) => {
-    //         Object.entries(size).forEach(([key, value]) => {
-    //             formData.append(`size[${index}][${key}]`, value)
-    //         })
-    //     })
-
-    //     await handleGallery(gallery, formData)
-
-    //     try {
-    //         await apiInstance.put(`vendor/update-product/${userData?.vendor_id}/${params.pid}/`, formData, {
-    //             headers:{
-    //                 'Content-Type': 'multipart/form-data',
-    //             }
-    //         })
-    //         Toast.fire({
-    //             icon: "success",
-    //             title: "Product updated successfully",
-    //         })
-    //         navigate(`/vendor/products`)
-    //     } catch (error) {
-    //         console.log(error.message);
-    //     }
-    // }
-
+    useEffect(() => {
+        apiInstance.get(`category/`).then((res) => {
+            setCategory(res.data);
+        })
+    }, [])
+ 
     return (
         <div className="container-fluid" id="main">
         <div className="row row-offcanvas row-offcanvas-left h-100">
@@ -480,7 +375,7 @@ const UpdateProduct = () => {
                         <div className="col-md-12">
                         <div className="card mb-3">
                             <div className="card-body">
-                            {specifications?.map((s, index) => (
+                            {specification?.map((s, index) => (
                             <div className="row text-dark" key={index}>
                                 <div className="col-lg-5 mb-2">
                                 <label htmlFor="" className="">
@@ -492,7 +387,7 @@ const UpdateProduct = () => {
                                     name=""
                                     id=""
                                     value={s.title || ''}
-                                    onChange={(e) => handleInputChange(index, 'title', e.target.value, setSpecifications)}
+                                    onChange={(e) => handleInputChange(index, 'title', e.target.value, setSpecification)}
                                 />
                                 </div>
                                 <div className="col-lg-5 mb-2">
@@ -505,7 +400,7 @@ const UpdateProduct = () => {
                                     name=""
                                     id=""
                                     value={s.content || ''}
-                                    onChange={(e) => handleInputChange(index, 'content', e.target.value, setSpecifications)}
+                                    onChange={(e) => handleInputChange(index, 'content', e.target.value, setSpecification)}
                                 />
                                 </div>
                                 <div className="col-lg-2 mb-2">
@@ -513,7 +408,7 @@ const UpdateProduct = () => {
                                 </div>
                             </div>
                             ))}
-                            <button type='button' onClick={() => handleAddMore(setSpecifications)} className="btn btn-primary mt-5">
+                            <button type='button' onClick={() => handleAddMore(setSpecification)} className="btn btn-primary mt-5">
                                 <i className="fas fa-plus" /> Add Specifications
                             </button>
                             </div>
